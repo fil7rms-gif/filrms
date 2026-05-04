@@ -28,13 +28,19 @@ Inclui um pequeno painel dentro do jogo com estado atual, temporizador, próxima
 ## Instalação
 
 1. Instala a extensão [Tampermonkey](https://www.tampermonkey.net/) no browser.
-2. Abre o ficheiro raw do script:
+2. Abre este link de instalação:
 
-   `https://raw.githubusercontent.com/fil7rms-gif/filrms/main/TW_AutoBuilder.user.js`
+   `https://cdn.jsdelivr.net/gh/fil7rms-gif/filrms@main/TW_AutoBuilder.user.js`
 
 3. O Tampermonkey deve abrir a página de instalação automaticamente.
 4. Confirma a instalação.
 5. Entra no Tribal Wars e abre a página principal da aldeia.
+
+Se esse link não abrir, confirma primeiro que o repositório está público e que o ficheiro já foi enviado para o branch `main`.
+
+Link alternativo direto pelo GitHub:
+
+`https://raw.githubusercontent.com/fil7rms-gif/filrms/main/TW_AutoBuilder.user.js`
 
 ## Atualizações automáticas
 
@@ -44,7 +50,7 @@ O script está configurado com:
 - `@updateURL`
 - `@downloadURL`
 
-Todos apontam para o ficheiro raw no branch `main` deste repositório.
+Todos apontam para o ficheiro publicado pelo jsDelivr a partir do branch `main` deste repositório.
 
 Para lançar uma nova versão:
 
