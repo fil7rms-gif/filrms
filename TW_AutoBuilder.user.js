@@ -1,9 +1,11 @@
 // ==UserScript==
 // @name         TW Auto-Builder
 // @namespace    https://github.com/fil7rms-gif/filrms
-// @version      8.1.1
+// @version      8.1.2
 // @description  Gestor automático de construção com suporte a atualizações automáticas
 // @author       quesalhas
+// @homepageURL  https://github.com/fil7rms-gif/filrms
+// @supportURL   https://github.com/fil7rms-gif/filrms/issues
 // @match        *://*.tribalwars.com.pt/*
 // @match        *://*.tribalwars.com/*
 // @match        *://*.tribalwars.net/*
@@ -12,6 +14,7 @@
 // @match        *://*.plemiona.pl/*
 // @match        *://*.die-staemme.de/*
 // @include      *://*.tribalwars.com.pt/*
+// @installURL   https://raw.githubusercontent.com/fil7rms-gif/filrms/main/TW_AutoBuilder.user.js
 // @updateURL    https://raw.githubusercontent.com/fil7rms-gif/filrms/main/TW_AutoBuilder.user.js
 // @downloadURL  https://raw.githubusercontent.com/fil7rms-gif/filrms/main/TW_AutoBuilder.user.js
 // @grant        none
@@ -19,6 +22,7 @@
 
 /*
  * Changelog:
+ * v8.1.2 - Metadados reforçados para atualizações automáticas via GitHub/Tampermonkey.
  * v8.1.1 - Interface atualizada para compatibilidade com a versão atual do Tribal Wars.
  * v8.1.0 - Remoção de painel e ações fora da página Principal. Limites de espera (max 24h).
  * v8.0.2 - URLs de atualização alteradas para GitHub raw. Correção de limites de espera anormal.
@@ -159,7 +163,7 @@
     ];
 
     // Versao centralizada para facil atualizacao
-    const VERSION_ATUAL = '8.1.1';
+    const VERSION_ATUAL = '8.1.2';
     const LOG_PREFIX = `[Auto-Builder v${VERSION_ATUAL}]`;
 
     // Detectar versao actualizada
