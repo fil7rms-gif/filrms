@@ -36,11 +36,26 @@ Inclui um pequeno painel dentro do jogo com estado atual, temporizador, próxima
 4. Confirma a instalação.
 5. Entra no Tribal Wars e abre a página principal da aldeia.
 
-Se esse link não abrir, confirma primeiro que o repositório está público e que o ficheiro já foi enviado para o branch `main`.
+Se esse link não abrir ou aparecer `404`, confirma primeiro que o repositório está público e que o ficheiro já foi enviado para o branch `main`.
 
 Link alternativo direto pelo GitHub:
 
 `https://raw.githubusercontent.com/fil7rms-gif/filrms/main/TW_AutoBuilder.user.js`
+
+### Erro 404 ou "não encontra"
+
+Se o GitHub/jsDelivr não encontrar o ficheiro, normalmente é por uma destas razões:
+
+- O repositório está privado.
+- O ficheiro ainda não foi enviado para o GitHub.
+- O branch não se chama `main`.
+- O nome do ficheiro no GitHub é diferente de `TW_AutoBuilder.user.js`.
+
+Para as atualizações automáticas do Tampermonkey funcionarem, o ficheiro precisa estar acessível publicamente. Se o repositório estiver privado, torna-o público em:
+
+`GitHub -> Settings -> General -> Danger Zone -> Change repository visibility -> Public`
+
+Enquanto o repositório estiver privado, instala manualmente pelo Tampermonkey copiando o conteúdo de `TW_AutoBuilder.user.js` para um novo script.
 
 ## Atualizações automáticas
 
