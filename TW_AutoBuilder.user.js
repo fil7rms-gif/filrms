@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TW Auto-Builder
 // @namespace    https://github.com/fil7rms-gif/filrms
-// @version      8.1.0
+// @version      8.1.1
 // @description  Gestor automático de construção com suporte a atualizações automáticas
 // @author       quesalhas
 // @match        *://*.tribalwars.com.pt/*
@@ -19,6 +19,7 @@
 
 /*
  * Changelog:
+ * v8.1.1 - Interface atualizada para compatibilidade com a versão atual do Tribal Wars.
  * v8.1.0 - Remoção de painel e ações fora da página Principal. Limites de espera (max 24h).
  * v8.0.2 - URLs de atualização alteradas para GitHub raw. Correção de limites de espera anormal.
  * v8.0.0 - Sistema anti-deteção v8.0, humanização melhorada, suporte a estratégias.
@@ -158,7 +159,7 @@
     ];
 
     // Versao centralizada para facil atualizacao
-    const VERSION_ATUAL = '8.1.0';
+    const VERSION_ATUAL = '8.1.1';
     const LOG_PREFIX = `[Auto-Builder v${VERSION_ATUAL}]`;
 
     // Detectar versao actualizada
@@ -371,25 +372,32 @@
             '.buildqueue',
             '.build_queue',
             '.build_queue_box',
-            '.queue_outer_wrap'
+            '.queue_outer_wrap',
+            '#queue',
+            '.queue',
+            '.construction_queue',
+            '.construction_queue_container',
+            '.queue-list',
+            '.build-queue',
+            '.tw-buildqueue'
         ];
         for (const seletor of seletoresEstritos) {
             const el = document.querySelector(seletor);
             if (el) return el;
         }
 
-        const candidatos = Array.from(document.querySelectorAll('[id*="queue"], [class*="queue"]'));
+        const candidatos = Array.from(document.querySelectorAll('[id*="queue"], [class*="queue"], [class*="build-order"], [class*="construction"], [class*="build-queue"]'));
         return candidatos.find(el => {
             const texto = el.textContent || '';
             const temTimer = /\b(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\b/.test(texto);
             const temEdificio = !!el.querySelector('[data-building], img[src*="/buildings/"]');
-            const pareceConstrucao = /build|constru|edif|building/i.test(`${el.id} ${el.className} ${texto}`);
+            const pareceConstrucao = /build|constru|edif|building|fila|queue/i.test(`${el.id} ${el.className} ${texto}`);
             return (temTimer || temEdificio) && pareceConstrucao;
         }) || null;
     }
 
     function confirmarPopupConstrucao() {
-        const candidatos = Array.from(document.querySelectorAll('.btn-confirm-yes, .confirmation-buttons .btn, .popup_box .btn'));
+        const candidatos = Array.from(document.querySelectorAll('.btn-confirm-yes, .btn-confirm, .btn-yes, .confirmation-buttons .btn, .popup_box .btn, .confirm-dialog button, .popup button, [data-confirm="yes"], [data-action="confirm"]'));
         const btn = candidatos.find(el => {
             const visivel = el.offsetParent !== null;
             const texto = `${el.textContent || ''} ${el.title || ''}`.toLowerCase();
@@ -476,7 +484,7 @@
         });
         if (linhas.length) return linhas;
 
-        const items = Array.from(container.querySelectorAll('li, .queue-item, .buildorder, [id^="buildorder_"]')).filter(el => {
+        const items = Array.from(container.querySelectorAll('li, .queue-item, .buildorder, [id^="buildorder_"], .build-entry, .queue-entry, .construction-entry, .build-item')).filter(el => {
             return !!extrairEdificioDeItemFila(el) || extrairTempoDeItemFila(el) !== null;
         });
         if (items.length) return items;
@@ -745,7 +753,7 @@
                 // Procuramos e clicamos nesse botão de confirmação 1 segundo depois
                 setTimeout(() => {
                     if (confirmarPopupConstrucao()) return;
-                    let btnConfirmarPopup = document.querySelector('.btn-confirm-yes, .btn-yes, [data-confirm="yes"]');
+                    let btnConfirmarPopup = document.querySelector('.btn-confirm-yes, .btn-confirm, .btn-yes, [data-confirm="yes"], [data-action="confirm"], .confirm-dialog button, .popup button');
                     if (btnConfirmarPopup && btnConfirmarPopup.offsetParent !== null) {
                         console.log("[Auto-Builder] Popup de confirmação detetado! A confirmar...");
                         btnConfirmarPopup.click();
@@ -1293,7 +1301,9 @@
             // Apenas os containers estritos da fila de construção (nunca o ecrã todo)
             const queueContainers = [
                 document.getElementById('buildqueue'), document.getElementById('build_queue'),
-                document.querySelector('#buildings_queue'), document.querySelector('.build-queue-wrapper')
+                document.getElementById('queue'), document.querySelector('#buildings_queue'),
+                document.querySelector('.build-queue-wrapper'), document.querySelector('.queue'),
+                document.querySelector('.build-queue'), document.querySelector('.tw-buildqueue')
             ].filter(Boolean);
             
             queueContainers.forEach(container => {
