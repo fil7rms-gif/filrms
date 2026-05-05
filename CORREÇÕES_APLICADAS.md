@@ -1,9 +1,17 @@
-# 🔧 CORREÇÕES APLICADAS - v8.2.1
+# 🔧 CORREÇÕES APLICADAS - v8.2.2
 
 ## Problema Identificado
-O script apresentava esperas anormais (ex: 24h ou saltos de minutos inexplicáveis), falha na detecção de conta premium, leitura imprecisa de timers da fila e o painel podia fechar o dropdown de estratégia por ser redesenhado a cada atualização.
+O script apresentava esperas anormais (ex: 24h ou saltos de minutos inexplicáveis), falha na detecção de conta premium, leitura imprecisa de timers da fila, fecho involuntário do dropdown de estratégia e dois erros visuais no painel durante pausas.
 
-## ✅ Correção Mais Recente (v8.2.1)
+## ✅ Correção Mais Recente (v8.2.2)
+
+### 1. 🧾 Renderização Parcial do Painel em Pausa
+- **Problema:** `setArmazem()` mostrava a percentagem crua, por exemplo `32.51302837290098%`.
+- **Solução:** A percentagem passou a ser normalizada, limitada entre 0 e 100 e arredondada antes de aparecer no painel.
+- **Problema:** `setObraRecente()` recebia um objeto `{ nome, tempo }`, mas imprimia o objeto diretamente.
+- **Solução:** A fila recente agora renderiza `nome` e `tempo` separadamente, ou limpa o campo quando não há construção recente.
+
+## ✅ Correção de Interface (v8.2.1)
 
 ### 1. 🎛️ Painel com Atualizações Específicas
 - **Problema:** Funções como `setStatus()`, `setTimerText()` e `setProximo()` chamavam `atualizarPainel()` e recriavam todo o HTML do painel.
@@ -36,18 +44,18 @@ O script apresentava esperas anormais (ex: 24h ou saltos de minutos inexplicáve
 
 ### Exemplo de Fila Cheia Inteligente:
 ```
-[Auto-Builder v8.2.1] Timer encontrado na fila: 08m 45s
-[Auto-Builder v8.2.1] Status: Fila cheia (5/5). Próxima vaga em 08m 45s.
+[Auto-Builder v8.2.2] Timer encontrado na fila: 08m 45s
+[Auto-Builder v8.2.2] Status: Fila cheia (5/5). Próxima vaga em 08m 45s.
 ```
 
 ### Exemplo de Correção de Escala:
 ```
-[Auto-Builder v8.2.1] [DEBUG] wood: custo=60, atual=0, falta=60
-[Auto-Builder v8.2.1] [DEBUG] Producao detectada muito baixa (0.0083). Assumindo producao por segundo e convertendo para hora.
-[Auto-Builder v8.2.1] [DEBUG] Produção confirmada: wood = 30/h
+[Auto-Builder v8.2.2] [DEBUG] wood: custo=60, atual=0, falta=60
+[Auto-Builder v8.2.2] [DEBUG] Producao detectada muito baixa (0.0083). Assumindo producao por segundo e convertendo para hora.
+[Auto-Builder v8.2.2] [DEBUG] Produção confirmada: wood = 30/h
 ```
 
 ---
 
-**Versão Final:** 8.2.1
+**Versão Final:** 8.2.2
 **Data:** 2026-05-05

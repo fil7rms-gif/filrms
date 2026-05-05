@@ -1,4 +1,4 @@
-🎯 RESUMO RÁPIDO - v8.2.1
+🎯 RESUMO RÁPIDO - v8.2.2
 ═════════════════════════════════════
 
 ✅ O QUE FOI CORRIGIDO RECENTEMENTE:
@@ -22,11 +22,15 @@
    - Corrigido o painel para atualizar apenas os campos necessários.
    - O seletor de estratégia já não deve fechar sozinho quando o timer/status muda.
 
+6. 🧾 Painel em Pausa:
+   - Corrigida a percentagem do armazém para não mostrar casas decimais enormes.
+   - Corrigida a "Fila recente" para não mostrar "[object Object]".
+
 📱 O QUE FAZER AGORA:
    
    1. Atualiza o script no Tampermonkey.
    2. Abre o Tribal Wars no Edifício Principal.
-   3. Confirma se no topo do painel aparece "v8.2.1".
+   3. Confirma se no topo do painel aparece "v8.2.2".
 
 💡 DICA:
    Se o bot estiver a aguardar, o painel vai mostrar exatamente porquê (Sem recursos ou Fila cheia) e quanto tempo falta.

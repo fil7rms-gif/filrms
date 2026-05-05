@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TW Auto-Builder
 // @namespace    https://github.com/fil7rms-gif/filrms
-// @version      8.2.1
+// @version      8.2.2
 // @description  Gestor automático de construção com suporte a atualizações automáticas
 // @author       quesalhas
 // @homepageURL  https://github.com/fil7rms-gif/filrms
@@ -22,6 +22,7 @@
 
 /*
  * Changelog:
+ * v8.2.2 - Correção de renderização parcial: percentagem do armazém arredondada e fila recente sem [object Object].
  * v8.2.1 - Otimização de UI: Atualização de elementos específicos para evitar fecho do dropdown de estratégia.
  * v8.2.0 - UI atualizada: Substituída info "Anti-Bot" por "Sessão" e "Conta". Contador de obras persistente.
  * v8.1.9 - Melhoria na detecção de timers da fila e status detalhado em fila cheia.
@@ -172,7 +173,7 @@
     ];
 
     // Versao centralizada para facil atualizacao
-    const VERSION_ATUAL = '8.2.1';
+    const VERSION_ATUAL = '8.2.2';
     const LOG_PREFIX = `[Auto-Builder v${VERSION_ATUAL}]`;
 
     // Detectar versao actualizada
@@ -365,11 +366,13 @@
     }
 
     function setArmazem(pct) {
-        estadoAtual.armazem = {pct};
+        const pctSeguro = Number.isFinite(Number(pct)) ? Math.max(0, Math.min(100, Number(pct))) : 0;
+        const pctVisual = Math.round(pctSeguro);
+        estadoAtual.armazem = {pct: pctVisual};
         const el = document.getElementById('twArmText');
         if (el) {
-            const cor = pct > 90 ? '#ff4444' : (pct > 75 ? '#ffaa00' : '#88cc88');
-            el.innerHTML = `<div style="display:flex;align-items:center;margin-bottom:3px;"><span style="font-size:18px;margin-right:8px;">📦</span> <strong>Arm:</strong> <span style="margin-left:5px;color:${cor}">${pct}%</span></div><div style="width:100%;background:#333;border-radius:10px;height:8px;margin-bottom:12px;overflow:hidden;"><div style="width:${pct}%;background:${cor};height:100%;transition:width 0.5s ease;"></div></div>`;
+            const cor = pctVisual > 90 ? '#ff4444' : (pctVisual > 75 ? '#ffaa00' : '#88cc88');
+            el.innerHTML = `<div style="display:flex;align-items:center;margin-bottom:3px;"><span style="font-size:18px;margin-right:8px;">📦</span> <strong>Arm:</strong> <span style="margin-left:5px;color:${cor}">${pctVisual}%</span></div><div style="width:100%;background:#333;border-radius:10px;height:8px;margin-bottom:12px;overflow:hidden;"><div style="width:${pctVisual}%;background:${cor};height:100%;transition:width 0.5s ease;"></div></div>`;
         } else atualizarPainel();
     }
 
@@ -378,10 +381,18 @@
         atualizarPainel();
     }
 
-    function setObraRecente(msg) {
-        estadoAtual.obraRecente = msg;
+    function setObraRecente(obra) {
+        estadoAtual.obraRecente = obra;
         const el = document.getElementById('twRecenteText');
-        if (el) el.innerHTML = `<div style="border-top:1px solid #555;padding-top:8px;font-size:12px;color:#ccc;"><strong>Fila recente:</strong> <span style="color:#ffd37a;">${msg}</span></div>`;
+        if (el) {
+            if (!obra) {
+                el.innerHTML = '';
+                return;
+            }
+            const nome = typeof obra === 'object' ? obra.nome : obra;
+            const tempo = typeof obra === 'object' && obra.tempo ? ` <span style="color:#aaa;">${obra.tempo}</span>` : '';
+            el.innerHTML = `<div style="border-top:1px solid #555;padding-top:8px;font-size:12px;color:#ccc;"><strong>Fila recente:</strong> <span style="color:#ffd37a;">${nome}</span>${tempo}</div>`;
+        }
         else atualizarPainel();
     }
 

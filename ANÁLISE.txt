@@ -1,5 +1,5 @@
 ╔════════════════════════════════════════════════════════════════════════════╗
-║              🔧 ANÁLISE FINAL - v8.2.1 (SOLUÇÃO DEFINITIVA)              ║
+║              🔧 ANÁLISE FINAL - v8.2.2 (SOLUÇÃO DEFINITIVA)              ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 
 ## 🎯 RESUMO DOS ERROS ENCONTRADOS
@@ -35,7 +35,7 @@ Após investigação, descobrimos que os tempos "enormes" eram causados por 4 bu
 │ • Se esperas 10s, o bot pode esperar 11.5s para parecer humano.             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-## ✅ AJUSTE FINAL DE INTERFACE (v8.2.1)
+## ✅ AJUSTE FINAL DE INTERFACE (v8.2.1 - v8.2.2)
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 5️⃣  Atualizações Parciais do Painel                                      │
@@ -45,6 +45,8 @@ Após investigação, descobrimos que os tempos "enormes" eram causados por 4 bu
 │   são atualizados diretamente quando o painel já existe.                    │
 │ • O seletor de estratégia mantém o foco e não fecha por causa do refresh    │
 │   visual do painel.                                                        │
+│ • A percentagem do armazém é arredondada no caminho de atualização parcial. │
+│ • A fila recente renderiza nome/tempo em vez de mostrar [object Object].    │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -72,7 +74,7 @@ Após investigação, descobrimos que os tempos "enormes" eram causados por 4 bu
 
 ## 📊 COMO VERIFICAR O SUCESSO
 
-1. **Versão:** Confirma `Auto-Builder v8.2.1` no topo do painel.
+1. **Versão:** Confirma `Auto-Builder v8.2.2` no topo do painel.
 2. **Status de Fila:** Se a fila estiver cheia, verás: `Próxima vaga em XXm YYs`.
 3. **Status de Recursos:** Verás esperas curtas e precisas (ex: `A aguardar 0m 45s`).
 4. **Estratégia:** Abre o dropdown de estratégia e confirma que ele não fecha sozinho quando o timer atualiza.
@@ -81,4 +83,4 @@ Após investigação, descobrimos que os tempos "enormes" eram causados por 4 bu
 
 **Estado:** Estabilizado. Todos os bugs críticos de escala e cálculo foram resolvidos.
 **Data:** 2026-05-05 16:58
-**Versão:** 8.2.1
+**Versão:** 8.2.2

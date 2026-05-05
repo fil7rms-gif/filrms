@@ -1,11 +1,11 @@
-🚨 GUIA DE DIAGNÓSTICO FINAL - v8.2.1
+🚨 GUIA DE DIAGNÓSTICO FINAL - v8.2.2
 ════════════════════════════════════════════
 
-A versão 8.2.1 resolveu os problemas de 24h, saltos de minutos no timer e o fecho involuntário do dropdown de estratégia. 
+A versão 8.2.2 resolveu os problemas de 24h, saltos de minutos no timer, fecho involuntário do dropdown de estratégia e bugs visuais no armazém/fila recente.
 Se ainda tiveres problemas, segue estes passos rápidos:
 
 ## ⚠️ PASSO 1: CONFIRMAR A VERSÃO
-Certifica-te que o painel no jogo diz: **🤖 Auto-Builder v8.2.1**
+Certifica-te que o painel no jogo diz: **🤖 Auto-Builder v8.2.2**
 
 Se disser v8.1.4 ou outra:
 1. Abre o Tampermonkey.
@@ -28,15 +28,19 @@ Se disser v8.1.4 ou outra:
 
 ### 4. Se o dropdown de estratégia fechar sozinho:
 - **Correto:** Abrir o dropdown e esperar pela atualização do timer não deve fechá-lo.
-- **Erro:** Se fechar sozinho, confirma que estás mesmo na versão `v8.2.1` e envia o texto do painel mais recente.
+- **Erro:** Se fechar sozinho, confirma que estás mesmo na versão `v8.2.2` e envia o texto do painel mais recente.
+
+### 5. Se aparecer `[object Object]` ou percentagem enorme:
+- **Correto:** `Fila recente` deve mostrar o nome/tempo da obra, ou ficar vazia se não houver obra.
+- **Correto:** `Arm:` deve mostrar percentagem arredondada, por exemplo `33%`.
 
 ## ⚠️ PASSO 3: COMO COPIAR LOGS DE DEBUG (Se necessário)
 
 1. Pressiona **F12** -> Aba **Console**.
 2. Filtra por: `Auto-Builder`.
 3. Copia as linhas que mostram o cálculo de produção:
-   `[Auto-Builder v8.2.1] [DEBUG] Produção confirmada: wood = XXX/h`
-   `[Auto-Builder v8.2.1] [DEBUG] wood: custo=XXX, atual=XXX, falta=XXX`
+   `[Auto-Builder v8.2.2] [DEBUG] Produção confirmada: wood = XXX/h`
+   `[Auto-Builder v8.2.2] [DEBUG] wood: custo=XXX, atual=XXX, falta=XXX`
 
 ## ❓ INFO PARA O SUPORTE
 Se o bot não construir, diz-me apenas:
@@ -52,5 +56,6 @@ Se o bot não construir, diz-me apenas:
 ✅ Limite de Premium -> RESOLVIDO
 ✅ Timers de Fila -> RESOLVIDO
 ✅ Dropdown de Estratégia -> RESOLVIDO
+✅ Renderização de Armazém/Fila recente -> RESOLVIDO
 
 Nenhum erro de cálculo deve passar agora sem ser logado!

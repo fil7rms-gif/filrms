@@ -1,4 +1,4 @@
-# 🔍 INSTRUÇÕES DE DEBUG - v8.2.1
+# 🔍 INSTRUÇÕES DE DEBUG - v8.2.2
 
 ## O Que Mudou
 
@@ -6,7 +6,7 @@ O script agora possui logs reforçados para diagnosticar:
 1.  **Cálculo de espera de recursos** (corrigido para escala decimal).
 2.  **Detecção de Conta Premium** (agora multiplos métodos).
 3.  **Leitura de Timers da Fila** (específico para o primeiro item).
-4.  **Atualização parcial do painel** (para não fechar o dropdown de estratégia).
+4.  **Atualização parcial do painel** (para não fechar o dropdown de estratégia nem mostrar dados mal formatados).
 
 ## Como Ver os Logs
 
@@ -18,17 +18,17 @@ O script agora possui logs reforçados para diagnosticar:
 
 ### 💎 Conta Premium
 Procure por:
-- `[Auto-Builder v8.2.1] Premium detectado por [Método]`
-- `[Auto-Builder v8.2.1] Limite de fila definido: [2 ou 5]`
+- `[Auto-Builder v8.2.2] Premium detectado por [Método]`
+- `[Auto-Builder v8.2.2] Limite de fila definido: [2 ou 5]`
 
 ### ⏱️ Fila Cheia
 Procure por:
-- `[Auto-Builder v8.2.1] Timer encontrado na fila: [Tempo]`
+- `[Auto-Builder v8.2.2] Timer encontrado na fila: [Tempo]`
 - Se o bot estiver a dizer "Usando padrão de 5 min", significa que ele não conseguiu ler o timer visualmente.
 
 ### 📉 Produção e Escala
 Procure por:
-- `[Auto-Builder v8.2.1] [DEBUG] Producao detectada muito baixa. Assumindo producao por segundo...`
+- `[Auto-Builder v8.2.2] [DEBUG] Producao detectada muito baixa. Assumindo producao por segundo...`
 - Isso confirma que o bot corrigiu automaticamente a leitura de 0.008 para 30/h.
 
 ### 🎛️ Dropdown de Estratégia
@@ -45,5 +45,5 @@ Se o bot fizer algo estranho:
 
 ---
 
-**Versão:** 8.2.1
+**Versão:** 8.2.2
 **Suporte:** quesalhas
