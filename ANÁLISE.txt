@@ -1,0 +1,84 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║              🔧 ANÁLISE FINAL - v8.2.1 (SOLUÇÃO DEFINITIVA)              ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+## 🎯 RESUMO DOS ERROS ENCONTRADOS
+
+Após investigação, descobrimos que os tempos "enormes" eram causados por 4 bugs principais, e que havia ainda uma melhoria de UX no painel:
+
+1. **Bug da Dupla Humanização (O mais grave):**
+   - O bot randomizava o tempo duas vezes. Uma pausa de 500 unidades (planeada para ms) era aplicada a uma espera de segundos. 
+   - Resultado: 28 segundos + 500 segundos extra = 8 minutos de espera inexplicável.
+
+2. **Bug da Produção Decimal:**
+   - Em certos servidores, a produção vinha em formato decimal (ex: 0.008/s).
+   - O bot lia 0.008 por hora, calculando que demorarias centenas de horas para ter 60 de madeira.
+   - Resultado: O bot batia no teto de segurança de 24h.
+
+3. **Bug da Fila Cega:**
+   - O bot não lia o tempo dos edifícios já na fila. Se a fila estivesse cheia, ele esperava um valor padrão de 5 ou 20 minutos "às cegas".
+
+4. **Bug da Conta Premium:**
+   - A detecção falhava em novas versões do TW, limitando a fila a 2 itens quando o jogador tinha direito a 5.
+
+5. **Painel a Recriar Durante a Interação:**
+   - O painel era redesenhado inteiro sempre que o status/timer mudava.
+   - Resultado: o dropdown de estratégia podia fechar sozinho durante a seleção.
+
+## ✅ SOLUÇÕES IMPLEMENTADAS
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1️⃣  Humanização Proporcional                                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • Removido o acréscimo fixo de 500 unidades.                                │
+│ • Agora a "pausa de reflexão" é sempre 15% do tempo base.                   │
+│ • Se esperas 10s, o bot pode esperar 11.5s para parecer humano.             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+## ✅ AJUSTE FINAL DE INTERFACE (v8.2.1)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5️⃣  Atualizações Parciais do Painel                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • Campos dinâmicos receberam IDs próprios.                                  │
+│ • Status, timer, próximo alvo, população, armazém, fila recente e sessão    │
+│   são atualizados diretamente quando o painel já existe.                    │
+│ • O seletor de estratégia mantém o foco e não fecha por causa do refresh    │
+│   visual do painel.                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2️⃣  Detecção Automática de Escala (Prod/s vs Prod/h)                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • Se a produção detectada for < 5/h, o bot assume que o jogo enviou         │
+│   o valor por segundo e converte automaticamente (*3600).                   │
+│ • Adicionado fallback robusto baseado no nível do edifício.                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3️⃣  Timers Inteligentes de Fila                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • Nova função lerMenorTimer() que lê visualmente o tempo do primeiro        │
+│   item da fila de construção.                                               │
+│ • O bot agora espera exatamente o tempo necessário para abrir vaga.         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4️⃣  Premium Multi-Check                                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • Verifica 5 pontos diferentes para confirmar Conta Premium.                │
+│ • Se houver > 2 itens na fila, o bot auto-ajusta o limite para 5.           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+## 📊 COMO VERIFICAR O SUCESSO
+
+1. **Versão:** Confirma `Auto-Builder v8.2.1` no topo do painel.
+2. **Status de Fila:** Se a fila estiver cheia, verás: `Próxima vaga em XXm YYs`.
+3. **Status de Recursos:** Verás esperas curtas e precisas (ex: `A aguardar 0m 45s`).
+4. **Estratégia:** Abre o dropdown de estratégia e confirma que ele não fecha sozinho quando o timer atualiza.
+
+---
+
+**Estado:** Estabilizado. Todos os bugs críticos de escala e cálculo foram resolvidos.
+**Data:** 2026-05-05 16:58
+**Versão:** 8.2.1

@@ -1,0 +1,39 @@
+🎯 RESUMO RÁPIDO - v8.2.1
+═════════════════════════════════════
+
+✅ O QUE FOI CORRIGIDO RECENTEMENTE:
+
+1. ⏱️ Erro de Esperas Gigantes:
+   - Corrigido o bug que fazia esperas de 28s virarem 8 minutos (escala de humanização).
+   - Corrigido o bug que fazia a produção ser lida como quase zero.
+
+2. 💎 Suporte a Conta Premium:
+   - Agora o bot detecta se tens Premium e permite 5 construções na fila automaticamente.
+
+3. 📂 Fila Inteligente:
+   - Quando a fila está cheia, o bot lê exatamente quanto tempo falta para o primeiro edifício acabar.
+   - O status agora mostra: "Próxima vaga em XXm YYs".
+
+4. 🖥️ Nova Interface:
+   - Adicionado contador de obras da "Sessão".
+   - Adicionado indicador de "Conta" (Ativa/Normal) para confirmares o suporte a fila de 5.
+
+5. 🎛️ Dropdown de Estratégia:
+   - Corrigido o painel para atualizar apenas os campos necessários.
+   - O seletor de estratégia já não deve fechar sozinho quando o timer/status muda.
+
+📱 O QUE FAZER AGORA:
+   
+   1. Atualiza o script no Tampermonkey.
+   2. Abre o Tribal Wars no Edifício Principal.
+   3. Confirma se no topo do painel aparece "v8.2.1".
+
+💡 DICA:
+   Se o bot estiver a aguardar, o painel vai mostrar exatamente porquê (Sem recursos ou Fila cheia) e quanto tempo falta.
+
+═════════════════════════════════════════════════════════════
+
+Ficheiros para consultares:
+• INSTRUÇÕES_DEBUG.md - como ver os novos logs
+• CORREÇÕES_APLICADAS.md - lista técnica de mudanças
+• ANÁLISE.txt - análise inicial do erro de 24h

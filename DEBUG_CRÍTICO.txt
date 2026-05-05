@@ -1,0 +1,56 @@
+🚨 GUIA DE DIAGNÓSTICO FINAL - v8.2.1
+════════════════════════════════════════════
+
+A versão 8.2.1 resolveu os problemas de 24h, saltos de minutos no timer e o fecho involuntário do dropdown de estratégia. 
+Se ainda tiveres problemas, segue estes passos rápidos:
+
+## ⚠️ PASSO 1: CONFIRMAR A VERSÃO
+Certifica-te que o painel no jogo diz: **🤖 Auto-Builder v8.2.1**
+
+Se disser v8.1.4 ou outra:
+1. Abre o Tampermonkey.
+2. Desativa e ativa o script.
+3. Faz **CTRL+F5** na página do jogo.
+
+## ⚠️ PASSO 2: O QUE OBSERVAR NO PAINEL
+
+### 1. Se a fila estiver cheia:
+- **Correto:** O status deve dizer `Próxima vaga em ...` seguido de um tempo real (ex: 5m 20s).
+- **Erro:** Se disser `Próxima vaga em 5m 00s` fixos, o bot não está a conseguir ler o timer visualmente (envia-me print).
+
+### 2. Se faltarem recursos:
+- **Correto:** A espera deve ser proporcional ao que falta (ex: 15m para um edifício pesado).
+- **Erro:** Se voltar a aparecer `24h 00m 00s`, abre a Console (F12) e procura as linhas que começam por `[DEBUG]`.
+
+### 3. Detecção de Conta:
+- **Correto:** O campo `Conta:` deve dizer `Ativa 💎` se tiveres Premium.
+- **Sessão:** O campo `Sessão:` mostra quantas obras o bot já fez sem parar.
+
+### 4. Se o dropdown de estratégia fechar sozinho:
+- **Correto:** Abrir o dropdown e esperar pela atualização do timer não deve fechá-lo.
+- **Erro:** Se fechar sozinho, confirma que estás mesmo na versão `v8.2.1` e envia o texto do painel mais recente.
+
+## ⚠️ PASSO 3: COMO COPIAR LOGS DE DEBUG (Se necessário)
+
+1. Pressiona **F12** -> Aba **Console**.
+2. Filtra por: `Auto-Builder`.
+3. Copia as linhas que mostram o cálculo de produção:
+   `[Auto-Builder v8.2.1] [DEBUG] Produção confirmada: wood = XXX/h`
+   `[Auto-Builder v8.2.1] [DEBUG] wood: custo=XXX, atual=XXX, falta=XXX`
+
+## ❓ INFO PARA O SUPORTE
+Se o bot não construir, diz-me apenas:
+1. Tens Conta Premium ativa?
+2. Quantos edifícios tens na fila agora?
+3. O botão de construir do edifício que queres está cinzento? (Passa o rato por cima e diz-me o que diz o balão do jogo).
+
+═════════════════════════════════════════════════════════════════════════════
+
+⏱️ ESTADO ATUAL:
+✅ Bug de 24h (Produção) -> RESOLVIDO
+✅ Bug de 7 min (Escala) -> RESOLVIDO
+✅ Limite de Premium -> RESOLVIDO
+✅ Timers de Fila -> RESOLVIDO
+✅ Dropdown de Estratégia -> RESOLVIDO
+
+Nenhum erro de cálculo deve passar agora sem ser logado!

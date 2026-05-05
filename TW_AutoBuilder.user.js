@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TW Auto-Builder
 // @namespace    https://github.com/fil7rms-gif/filrms
-// @version      8.1.3
+// @version      8.2.1
 // @description  Gestor automático de construção com suporte a atualizações automáticas
 // @author       quesalhas
 // @homepageURL  https://github.com/fil7rms-gif/filrms
@@ -22,6 +22,14 @@
 
 /*
  * Changelog:
+ * v8.2.1 - Otimização de UI: Atualização de elementos específicos para evitar fecho do dropdown de estratégia.
+ * v8.2.0 - UI atualizada: Substituída info "Anti-Bot" por "Sessão" e "Conta". Contador de obras persistente.
+ * v8.1.9 - Melhoria na detecção de timers da fila e status detalhado em fila cheia.
+ * v8.1.8 - Corrigido erro de escala na humanização que causava esperas de minutos em vez de segundos.
+ * v8.1.7 - Detecção de Conta Premium reforçada para permitir 5 construções na fila.
+ * v8.1.6 - Correção de "Double Humanization" no timer e melhoria na detecção de produção decimal.
+ * v8.1.5 - Otimização de cálculos de tempo e correção definitiva de esperas anormais.
+ * v8.1.4 - Corrige esperas gigantes por leitura incorreta de recursos/producao e limita esperas anormais.
  * v8.1.3 - URLs de instalação/atualização alteradas para jsDelivr para evitar falhas no raw.githubusercontent.com.
  * v8.1.2 - Metadados reforçados para atualizações automáticas via GitHub/Tampermonkey.
  * v8.1.1 - Interface atualizada para compatibilidade com a versão atual do Tribal Wars.
@@ -70,7 +78,7 @@
     let STORAGE_THRESHOLD = CURRENT_STRATEGY.STORAGE_THRESHOLD;
     let POPULATION_THRESHOLD = CURRENT_STRATEGY.POPULATION_THRESHOLD;
 
-    const MAX_WAIT_SECONDS = 24 * 3600; // limitar esperas anormais a 24h
+    const MAX_WAIT_SECONDS = 4 * 3600; // limitar esperas anormais a 4h (era 24h, mas 24h sugere erro de cálculo)
     const MAX_PURGE_MATCH_SECONDS = 7 * 24 * 3600; // ignorar timers impossíveis acima de 7 dias
 
     // CONFIGURAÇÕES DE HUMANIZAÇÃO (Protocolo Biológico)
@@ -164,7 +172,7 @@
     ];
 
     // Versao centralizada para facil atualizacao
-    const VERSION_ATUAL = '8.1.3';
+    const VERSION_ATUAL = '8.2.1';
     const LOG_PREFIX = `[Auto-Builder v${VERSION_ATUAL}]`;
 
     // Detectar versao actualizada
@@ -197,13 +205,14 @@
     }
 
     // Delay humanizado com padrões irregulares
-    function humanizedDelay(baseMs, variance = 0.3) {
-        if (!ANTI_BOT.randomDelays) return baseMs;
-        const variation = baseMs * variance;
-        const delay = randomNormal(baseMs, variation);
-        // Adicionar "micro-pausas" ocasionais (pensamento humano)
+    function humanizedDelay(base, variance = 0.3) {
+        if (!ANTI_BOT.randomDelays) return base;
+        const variation = base * variance;
+        const delay = randomNormal(base, variation);
+        // Adicionar "micro-pausas" proporcionais para evitar saltos de escala (s vs ms)
         if (Math.random() < 0.05) {
-            return delay + randomNormal(500, 200);
+            const extra = base * 0.15; // Adiciona 15% extra como "reflexão"
+            return delay + randomNormal(extra, extra * 0.2);
         }
         return delay;
     }
@@ -237,7 +246,7 @@
     let estadoAtual = {
         status: 'A inicializar...', timer: '--', proximo: 'A calcular...',
         populacao: null, armazem: null, aldeia: null, obraRecente: null, minimizado: false,
-        antiBot: true, acoes: 0
+        temPremium: false, acoes: parseInt(localStorage.getItem('tw_autobuilder_session_actions') || '0', 10)
     };
 
     function atualizarPainel() {
@@ -281,11 +290,33 @@
             p.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#00ff88;font-weight:bold;">🤖 Auto-Builder v${VERSION_ATUAL}</span><button id="twBtnToggle" style="background:none;border:none;color:#aaa;cursor:pointer;padding:0 0 0 12px;font-size:13px;">▲</button></div>`;
         } else {
             p.style.padding = '12px 18px';
-            const antiBotStatus = estadoAtual.antiBot ? '<span style="color:#00ff88;">🛡️ ON</span>' : '<span style="color:#ff6644;">🛡️ OFF</span>';
-            p.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;border-bottom:1px solid #555;padding-bottom:5px;"><span style="font-weight:bold;font-size:16px;color:#00ff88;">🤖 Auto-Builder v${VERSION_ATUAL}</span><button id="twBtnToggle" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;">▼</button></div>${aldeiaHtml}<div style="margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;"><strong>Estratégia:</strong> <select id="twStrategySelect" style="background:#222;color:#00ff88;border:1px solid #555;border-radius:4px;padding:2px 4px;font-size:12px;cursor:pointer;outline:none;"><option value="agressivo" ${STRATEGY==='agressivo'?'selected':''}>Agressivo ⚔️</option><option value="economico" ${STRATEGY==='economico'?'selected':''}>Económico 🌾</option><option value="hibrido" ${STRATEGY==='hibrido'?'selected':''}>Híbrido ⚖️</option></select></div><div style="margin-bottom:5px;"><strong>Status:</strong> <span style="color:#aaddff;">${estadoAtual.status}</span></div><div style="margin-bottom:5px;"><strong>Ação em:</strong> <span style="color:#ff7777;font-weight:bold;">${estadoAtual.timer}</span></div><div style="margin-bottom:5px;"><strong>Próximo:</strong> <span style="color:#aaffaa;">${estadoAtual.proximo}</span></div><div style="margin-bottom:5px;"><strong>Anti-Bot:</strong> ${antiBotStatus}</div>${popHtml}${armHtml}`;
-            if (recenteHtml) {
-                p.innerHTML += recenteHtml;
-            }
+            const premiumStatus = estadoAtual.temPremium ? '<span style="color:#00ff88;">Ativa 💎</span>' : '<span style="color:#aaa;">Normal</span>';
+            
+            p.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;border-bottom:1px solid #555;padding-bottom:5px;">
+                    <span style="font-weight:bold;font-size:16px;color:#00ff88;">🤖 Auto-Builder v${VERSION_ATUAL}</span>
+                    <button id="twBtnToggle" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;">▼</button>
+                </div>
+                ${aldeiaHtml}
+                <div style="margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;">
+                    <strong>Estratégia:</strong> 
+                    <select id="twStrategySelect" style="background:#222;color:#00ff88;border:1px solid #555;border-radius:4px;padding:2px 4px;font-size:12px;cursor:pointer;outline:none;">
+                        <option value="agressivo" ${STRATEGY==='agressivo'?'selected':''}>Agressivo ⚔️</option>
+                        <option value="economico" ${STRATEGY==='economico'?'selected':''}>Económico 🌾</option>
+                        <option value="hibrido" ${STRATEGY==='hibrido'?'selected':''}>Híbrido ⚖️</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:5px;"><strong>Status:</strong> <span id="twStatusText" style="color:#aaddff;">${estadoAtual.status}</span></div>
+                <div style="margin-bottom:5px;"><strong>Ação em:</strong> <span id="twTimerText" style="color:#ff7777;font-weight:bold;">${estadoAtual.timer}</span></div>
+                <div style="margin-bottom:5px;"><strong>Próximo:</strong> <span id="twProximoText" style="color:#aaffaa;">${estadoAtual.proximo}</span></div>
+                <div style="margin-bottom:5px;display:flex;justify-content:space-between;">
+                    <span><strong>Conta:</strong> <span id="twPremiumText">${premiumStatus}</span></span>
+                    <span><strong>Sessão:</strong> <span id="twAcoesText" style="color:#ffd37a;">${estadoAtual.acoes} obras</span></span>
+                </div>
+                <div id="twPopText">${popHtml}</div>
+                <div id="twArmText">${armHtml}</div>
+                <div id="twRecenteText">${recenteHtml}</div>
+            `;
         }
         const btn = document.getElementById('twBtnToggle');
         if (btn) btn.onclick = () => { estadoAtual.minimizado = !estadoAtual.minimizado; atualizarPainel(); };
@@ -302,13 +333,57 @@
         }
     }
 
-    function setStatus(s)       { estadoAtual.status    = s;               atualizarPainel(); }
-    function setTimerText(t)    { estadoAtual.timer     = t;               atualizarPainel(); }
-    function setProximo(pr)     { estadoAtual.proximo   = pr;              atualizarPainel(); }
-    function setPopulacao(a, m) { estadoAtual.populacao = {atual:a,max:m}; atualizarPainel(); }
-    function setArmazem(pct)    { estadoAtual.armazem   = {pct};           atualizarPainel(); }
-    function setAldeia(nome)    { estadoAtual.aldeia    = nome;            atualizarPainel(); }
-    function setObraRecente(o)  { estadoAtual.obraRecente = o;             atualizarPainel(); }
+    function setStatus(txt) {
+        estadoAtual.status = txt;
+        const el = document.getElementById('twStatusText');
+        if (el) el.innerText = txt;
+        else atualizarPainel();
+    }
+
+    function setTimerText(txt) {
+        estadoAtual.timer = txt;
+        const el = document.getElementById('twTimerText');
+        if (el) el.innerText = txt;
+        else atualizarPainel();
+    }
+
+    function setProximo(txt) {
+        estadoAtual.proximo = txt;
+        const el = document.getElementById('twProximoText');
+        if (el) el.innerText = txt;
+        else atualizarPainel();
+    }
+    
+    function setPopulacao(a, m) {
+        estadoAtual.populacao = {atual:a, max:m};
+        const el = document.getElementById('twPopText');
+        if (el) {
+            const pct = Math.min(100, Math.round((a / m) * 100));
+            const cor = pct > 90 ? '#ff4444' : (pct > 70 ? '#ffaa00' : '#44ff44');
+            el.innerHTML = `<div style="display:flex;align-items:center;margin-bottom:3px;"><span style="font-size:18px;margin-right:8px;">👥</span> <strong>Pop:</strong> <span style="margin-left:5px;color:${cor}">${a}/${m} (${pct}%)</span></div><div style="width:100%;background:#333;border-radius:10px;height:8px;margin-bottom:8px;overflow:hidden;"><div style="width:${pct}%;background:${cor};height:100%;transition:width 0.5s ease;"></div></div>`;
+        } else atualizarPainel();
+    }
+
+    function setArmazem(pct) {
+        estadoAtual.armazem = {pct};
+        const el = document.getElementById('twArmText');
+        if (el) {
+            const cor = pct > 90 ? '#ff4444' : (pct > 75 ? '#ffaa00' : '#88cc88');
+            el.innerHTML = `<div style="display:flex;align-items:center;margin-bottom:3px;"><span style="font-size:18px;margin-right:8px;">📦</span> <strong>Arm:</strong> <span style="margin-left:5px;color:${cor}">${pct}%</span></div><div style="width:100%;background:#333;border-radius:10px;height:8px;margin-bottom:12px;overflow:hidden;"><div style="width:${pct}%;background:${cor};height:100%;transition:width 0.5s ease;"></div></div>`;
+        } else atualizarPainel();
+    }
+
+    function setAldeia(nome) {
+        estadoAtual.aldeia = nome;
+        atualizarPainel();
+    }
+
+    function setObraRecente(msg) {
+        estadoAtual.obraRecente = msg;
+        const el = document.getElementById('twRecenteText');
+        if (el) el.innerHTML = `<div style="border-top:1px solid #555;padding-top:8px;font-size:12px;color:#ccc;"><strong>Fila recente:</strong> <span style="color:#ffd37a;">${msg}</span></div>`;
+        else atualizarPainel();
+    }
 
     function registarHistorico(msg) {
         try {
@@ -521,45 +596,105 @@
         return parseInt(String(texto || '').replace(/\D/g, ''), 10) || 0;
     }
 
+    function extrairNumeroTW(valor) {
+        if (typeof valor === 'number') return Number.isFinite(valor) ? valor : 0;
+        let s = String(valor || '').trim();
+        if (!s) return 0;
+        
+        // Se houver pontos E vírgulas, ou apenas vírgula que parece decimal
+        // No TW PT: 1.234 é mil duzentos e trinta e quatro.
+        // No TW EN: 1,234 é mil duzentos e trinta e quatro.
+        
+        // Estratégia robusta: remover separadores de milhar comuns
+        // Se houver apenas um '.' e ele estiver na posição de decimal (ex: 0.008), mantemos.
+        // Mas recursos no TW são sempre inteiros. Produção pode ser decimal.
+        
+        if (s.includes('.') && s.includes(',')) {
+            // Caso 1.234,56 -> 1234.56
+            s = s.replace(/\./g, '').replace(',', '.');
+        } else if (s.includes(',')) {
+            // Caso 1,234 (pode ser milhar EN ou decimal PT)
+            // Se tiver 3 dígitos depois da vírgula e nada antes que impeça, tratamos como milhar.
+            // No TW, recursos nunca têm decimais na barra de topo.
+            if (/^\d+,\d{3}$/.test(s)) s = s.replace(',', '');
+            else s = s.replace(',', '.');
+        } else if (s.includes('.')) {
+            // Caso 1.234 (milhar PT) ou 1.23 (decimal EN)
+            // Só removemos o ponto se for claramente um separador de milhar (3 dígitos depois e valor >= 1)
+            if (/^[1-9]\d*\.\d{3}$/.test(s)) s = s.replace(/\./g, '');
+        }
+
+        const limpo = s.replace(/[^\d.]/g, '');
+        const numero = parseFloat(limpo);
+        return Number.isFinite(numero) ? numero : 0;
+    }
+
     function extrairCustoRow(row, seletor) {
         const el = row && row.querySelector(seletor);
         if (!el && seletor === '.cost_pop') {
             const iconPop = row && row.querySelector('[src*="pop.png"]');
-            if (iconPop && iconPop.nextElementSibling) return extrairNumero(iconPop.nextElementSibling.textContent);
+            if (iconPop && iconPop.nextElementSibling) {
+                const valor = extrairNumero(iconPop.nextElementSibling.textContent);
+                console.log(`${LOG_PREFIX} [DEBUG] Custo POP encontrado no ícone: ${valor}`);
+                return valor;
+            }
         }
-        return el ? extrairNumero(el.textContent) : 0;
+        const valor = el ? extrairNumero(el.textContent) : 0;
+        if (valor > 0) {
+            console.log(`${LOG_PREFIX} [DEBUG] Custo para seletor ${seletor}: ${valor}`);
+        }
+        return valor;
+    }
+
+    function obterRecursoAtual(village, recurso) {
+        const el = document.getElementById(recurso);
+        const valorDom = el ? extrairNumeroTW(el.textContent || el.innerText) : 0;
+        if (valorDom > 0) {
+            console.log(`${LOG_PREFIX} [DEBUG] Recurso atual ${recurso}: ${valorDom} (do DOM)`);
+            return valorDom;
+        }
+        const valorVillage = extrairNumeroTW(village && village[recurso]);
+        console.log(`${LOG_PREFIX} [DEBUG] Recurso atual ${recurso}: ${valorVillage} (de village)`);
+        return valorVillage;
     }
 
     function obterProducao(village, recurso) {
-        // TW moderno: produção está em game_data.village[`${recurso}_prod`] ou pode ser calculada
-        const candidatos = [
-            `${recurso}_prod`,
-            `${recurso}_production`,
-            `${recurso}Prod`,
-            `${recurso}Production`
-        ];
+        const candidatos = [`${recurso}_prod`, `${recurso}_production`, `${recurso}Prod`, `${recurso}Production` ];
+        let prodDetectada = 0;
+
         for (const key of candidatos) {
-            const valor = parseFloat(village[key]);
-            if (Number.isFinite(valor) && valor > 0) return valor;
-        }
-        // Fallback: procurar na DOM elementos de produção
-        try {
-            const prodEl = document.querySelector(`#${recurso}_prod, [data-resource="${recurso}"] .production, .res-${recurso} .production`);
-            if (prodEl) {
-                const texto = prodEl.textContent || prodEl.innerText || '';
-                const match = texto.match(/(\d+)/);
-                if (match) return parseFloat(match[1]);
+            const valor = extrairNumeroTW(village && village[key]);
+            if (Number.isFinite(valor) && valor > 0) {
+                prodDetectada = valor;
+                break;
             }
-        } catch(e) {}
-        // Se não encontrar, estimar com base no nível do edifício
-        const nivel = parseInt(village[`${recurso}`] || 0);
-        if (nivel > 0) {
-            // Produção base aproximada por nível no TW
-            const producaoBase = recurso === 'wood' ? 30 : recurso === 'stone' ? 30 : 30;
-            const multiplicador = Math.pow(1.1631, nivel - 1);
-            return Math.floor(producaoBase * multiplicador);
         }
-        return 30; // Produção mínima padrão
+
+        if (prodDetectada <= 0) {
+            try {
+                const prodEl = document.querySelector(`#${recurso}_prod, [data-resource="${recurso}"] .production, .res-${recurso} .production`);
+                if (prodEl) prodDetectada = extrairNumeroTW(prodEl.textContent);
+            } catch(e) {}
+        }
+
+        // Sanity Check: No TW, a produção por hora raramente é < 30 (nível 1).
+        // Se for um decimal muito pequeno (ex: 0.008), provavelmente é produção por segundo.
+        if (prodDetectada > 0 && prodDetectada < 5) {
+            console.log(`${LOG_PREFIX} [DEBUG] Producao detectada muito baixa (${prodDetectada}). Assumindo producao por segundo e convertendo para hora.`);
+            prodDetectada *= 3600;
+        }
+
+        if (prodDetectada >= 5) {
+            console.log(`${LOG_PREFIX} [DEBUG] Produção confirmada: ${recurso} = ${prodDetectada}/h`);
+            return prodDetectada;
+        }
+
+        // Fallback: estimar por nível
+        const buildings = village && village.buildings ? village.buildings : {};
+        const nivel = parseInt(buildings[recurso] || 0, 10);
+        const estimada = Math.floor(30 * Math.pow(1.163118, Math.max(0, nivel - 1)));
+        console.log(`${LOG_PREFIX} [DEBUG] Produção usando fallback nível ${nivel}: ${estimada}/h`);
+        return estimada;
     }
 
     function calcularEsperaRecursos(row, village) {
@@ -568,14 +703,15 @@
         let maiorEspera = 0;
         for (const recurso of recursos) {
             const custo = extrairCustoRow(row, `.cost_${recurso}`);
-            const atual = parseFloat(village[recurso]) || 0;
+            const atual = obterRecursoAtual(village, recurso);
             const falta = custo - atual;
             if (falta <= 0) continue;
+            
             const prodHora = obterProducao(village, recurso);
-            if (!prodHora) return null;
-            maiorEspera = Math.max(maiorEspera, Math.ceil((falta / prodHora) * 3600));
+            const espera = Math.ceil((falta / Math.max(5, prodHora)) * 3600);
+            maiorEspera = Math.max(maiorEspera, espera);
         }
-        return maiorEspera;
+        return Math.min(maiorEspera, MAX_WAIT_SECONDS);
     }
 
     // ========================================================================
@@ -1099,7 +1235,7 @@
         // Micro-break (15% de chance) - v8.0: humanizedDelay
         if (edificioAConstruir && Math.random() < CHANCE_MICRO_BREAK) {
             setStatus('☕ Pausa rápida... (humanização)');
-            agendarRefresh(humanizedDelay(600, 0.5));
+            agendarRefresh(600);
             return;
         }
 
@@ -1120,28 +1256,38 @@
 
         // Deteção inteligente de Conta Premium (múltiplos métodos)
         let temPremium = false;
-        if (game_data && game_data.features) {
-            // Método 1: Verificar objeto Premium
-            if (game_data.features.Premium && game_data.features.Premium.active) {
-                temPremium = true;
-            }
-            // Método 2: Verificar se AccountBenefits existe (versões mais recentes do TW)
-            if (game_data.features.AccountBenefits || game_data.features.account_benefits) {
-                temPremium = true;
+        if (typeof game_data !== 'undefined') {
+            // Método 1: game_data.premium (Booleano direto em muitas versões)
+            if (game_data.premium) temPremium = true;
+            
+            // Método 2: game_data.player.premium
+            if (game_data.player && game_data.player.premium) temPremium = true;
+
+            // Método 3: game_data.features
+            if (game_data.features) {
+                const f = game_data.features;
+                if ((f.Premium && f.Premium.active) || (f.premium && f.premium.active)) temPremium = true;
+                if (f.AccountBenefits || f.account_benefits || f.Account_benefits) temPremium = true;
             }
         }
-        // Método 3: Verificar na DOM se existe indicador premium
+        
+        // Método 4: DOM
         if (!temPremium) {
-            const indicadorPremium = document.querySelector('.premium-indicator, .premium-active, .account-status-premium, .premium-label');
-            if (indicadorPremium) temPremium = true;
+            const selectors = '.premium-indicator, .premium-active, .account-status-premium, .premium-label, #premium_account_status, .icon.header.premium';
+            if (document.querySelector(selectors)) temPremium = true;
         }
+
+        // Método 5: Tabela de construção (se houver mais de 2 itens, é porque tem premium ou pagou)
+        if (!temPremium && itensNaFila > 2) temPremium = true;
         let limiteFila = temPremium ? 5 : 2;
+        estadoAtual.temPremium = temPremium;
+        atualizarPainel();
 
         if (itensNaFila >= limiteFila) {
-            setStatus(`Fila cheia (${itensNaFila}/${limiteFila}). A aguardar...`);
             let s = lerMenorTimer(containerFila);
-            if (s < 60) s = 60;
-            agendarRefresh(humanizedDelay(s + 20, 0.2));
+            setStatus(`Fila cheia (${itensNaFila}/${limiteFila}). Próxima vaga em ${formatarSegundos(s)}.`);
+            if (s < 30) s = 30;
+            agendarRefresh(s + 15);
             return;
         }
 
@@ -1234,15 +1380,18 @@
                 let faltaRecursosReal = msgRecursos || (!filaRealmenteCheia && !temTimer);
 
                 if (filaRealmenteCheia) {
-                    setStatus(`Fila cheia (${itensNaFila} itens). A aguardar...`);
                     let s = lerMenorTimer(containerFila);
-                    const ESPERA_MINIMA = 2 * 60;
-                    if (s < ESPERA_MINIMA) s = ESPERA_MINIMA;
-                    agendarRefresh(humanizedDelay(s + 25, 0.2));
+                    setStatus(`Fila cheia (${itensNaFila} itens). Próxima vaga em ${formatarSegundos(s)}.`);
+                    if (s < 30) s = 30;
+                    agendarRefresh(s + 15);
                 } else if (faltaRecursosReal) {
                     setStatus(`Sem recursos para ${nomeVisual}.`);
                     const rowSelecionada = document.getElementById('main_buildrow_' + edificioAConstruir);
-                    const esperaRecursos = calcularEsperaRecursos(rowSelecionada, game_data.village);
+                    console.log(`${LOG_PREFIX} [DEBUG MAIN] Calculando espera para ${nomeVisual}...`);
+                    console.log(`${LOG_PREFIX} [DEBUG MAIN] rowSelecionada:`, rowSelecionada);
+                    console.log(`${LOG_PREFIX} [DEBUG MAIN] game_data.village:`, game_data && game_data.village);
+                    let esperaRecursos = calcularEsperaRecursos(rowSelecionada, game_data.village);
+                    console.log(`${LOG_PREFIX} [DEBUG MAIN] esperaRecursos retornou:`, esperaRecursos);
                     if (AUTO_NEXT_VILLAGE && game_data && game_data.player && game_data.player.villages > 1) {
                         setStatus(`Sem recursos. A saltar para a próxima aldeia...`);
                         irParaProximaAldeia(humanizedDelay(4000, 0.3));
@@ -1252,18 +1401,29 @@
                             esperaRecursos = MAX_WAIT_SECONDS;
                         }
                         setStatus(`Sem recursos para ${nomeVisual}. A aguardar ${formatarSegundos(esperaRecursos)}.`);
-                        agendarRefresh(humanizedDelay(Math.max(60, esperaRecursos + 70), 0.2));
+                        agendarRefresh(Math.max(60, esperaRecursos + 70));
                     } else {
-                        agendarRefresh(humanizedDelay(20 * 60, 0.3));
+                        // esperaRecursos é null, 0, ou inválido
+                        console.warn(`${LOG_PREFIX} Erro ao calcular espera de recursos. Tentando novamente em 20 min.`);
+                        agendarRefresh(20 * 60);
                     }
                 } else {
                     // Requisitos não cumpridos (edifício dependente em falta)
                     setStatus(`Requisitos em falta para ${nomeVisual}.`);
-                    agendarRefresh(humanizedDelay(10 * 60, 0.3));
+                    agendarRefresh(10 * 60);
                 }
             } else {
                 setStatus(`A construir ${nomeVisual}...`);
                 registarHistorico(`${nomeVisual} → nível ${alvoNivel}`);
+                
+                // Incrementar contador de sessao persistente
+                let nAcoes = parseInt(localStorage.getItem('tw_autobuilder_session_actions') || '0', 10) + 1;
+                localStorage.setItem('tw_autobuilder_session_actions', nAcoes);
+                estadoAtual.acoes = nAcoes;
+                const elAcoes = document.getElementById('twAcoesText');
+                if (elAcoes) elAcoes.innerText = `${nAcoes} obras`;
+                else atualizarPainel();
+
                 console.log(`${LOG_PREFIX} Construir ${nomeVisual} → nível ${alvoNivel}`);
                 let tempoAteClicar = humanizedDelay(3000, 0.4);
 
@@ -1293,17 +1453,22 @@
 
     function lerMenorTimer(container = encontrarContainerFila()) {
         try {
-            const tempos = lerFilaConstrucao(container)
-                .map(item => item.segundos)
-                .filter(segundos => Number.isFinite(segundos) && segundos >= 10 && segundos <= MAX_PURGE_MATCH_SECONDS);
-            if (tempos.length) return Math.min(...tempos);
+            const fila = lerFilaConstrucao(container);
+            if (fila.length > 0) {
+                // Tenta apanhar o tempo do primeiro item da fila (o que acaba primeiro)
+                for (let item of fila) {
+                    if (Number.isFinite(item.segundos) && item.segundos >= 5) {
+                        console.log(`${LOG_PREFIX} Timer encontrado na fila: ${formatarSegundos(item.segundos)}`);
+                        return item.segundos;
+                    }
+                }
+            }
         } catch(e) {
-            console.log(`${LOG_PREFIX} Erro ao ler timer:`, e);
+            console.log(`${LOG_PREFIX} Erro ao ler timer da fila:`, e);
         }
 
         let menor = Infinity;
         try {
-            // Apenas os containers estritos da fila de construção (nunca o ecrã todo)
             const queueContainers = [
                 document.getElementById('buildqueue'), document.getElementById('build_queue'),
                 document.getElementById('queue'), document.querySelector('#buildings_queue'),
@@ -1312,23 +1477,21 @@
             ].filter(Boolean);
             
             queueContainers.forEach(container => {
-                // Apanha qualquer texto no formato HH:MM:SS ou MM:SS dentro do elemento da fila
                 let matches = container.innerText.match(/\b(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\b/g);
                 if (matches) {
                     matches.forEach(tempoTxt => {
                         let partes = tempoTxt.match(/(?:(\d{1,2}):)?(\d{1,2}):(\d{2})/);
                         if (partes) {
                             let total = (partes[1] ? parseInt(partes[1],10) : 0)*3600 + parseInt(partes[2],10)*60 + parseInt(partes[3],10);
-                            // Ignorar timers impossíveis ou valores errados acima de 7 dias
-                            if (total >= 10 && total <= MAX_PURGE_MATCH_SECONDS && total < menor) menor = total;
+                            if (total >= 5 && total <= MAX_PURGE_MATCH_SECONDS && total < menor) menor = total;
                         }
                     });
                 }
             });
-        } catch(e) { console.log(`${LOG_PREFIX} Erro ao ler timer:`, e); }
+        } catch(e) { console.log(`${LOG_PREFIX} Erro fallback timer:`, e); }
         
-        if (menor === Infinity) {
-            console.warn(`${LOG_PREFIX} Nenhum timer válido encontrado na fila. Usando padrão de 5 minutos.`);
+        if (menor === Infinity || menor < 5) {
+            console.warn(`${LOG_PREFIX} Nenhum timer válido encontrado. Usando padrão de 5 min.`);
             return 5 * 60;
         }
         return menor;
