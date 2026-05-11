@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TW Auto-Builder
 // @namespace    https://github.com/fil7rms-gif/filrms
-// @version      8.2.2
+// @version      8.2.4
 // @description  Gestor automático de construção com suporte a atualizações automáticas
 // @author       quesalhas
 // @homepageURL  https://github.com/fil7rms-gif/filrms
@@ -22,6 +22,8 @@
 
 /*
  * Changelog:
+ * v8.2.4 - Correção crítica na contagem de níveis na fila: Agora detecta corretamente múltiplos níveis do mesmo edifício (ex: Estábulo 9,10,11,12). Painel atualizado para mostrar informação mais clara (Próximo | Atual + Fila).
+ * v8.2.3 - Correção crítica de timer: Usa Date.now() para calcular tempo real, eliminando atrasos em abas inativas/minimizadas (throttling).
  * v8.2.2 - Correção de renderização parcial: percentagem do armazém arredondada e fila recente sem [object Object].
  * v8.2.1 - Otimização de UI: Atualização de elementos específicos para evitar fecho do dropdown de estratégia.
  * v8.2.0 - UI atualizada: Substituída info "Anti-Bot" por "Sessão" e "Conta". Contador de obras persistente.
@@ -173,7 +175,7 @@
     ];
 
     // Versao centralizada para facil atualizacao
-    const VERSION_ATUAL = '8.2.2';
+    const VERSION_ATUAL = '8.2.4';
     const LOG_PREFIX = `[Auto-Builder v${VERSION_ATUAL}]`;
 
     // Detectar versao actualizada
@@ -555,34 +557,61 @@
     }
 
     function extrairEdificioDeItemFila(item) {
+        // Método 1: data-building attribute
         const el = item.querySelector('[data-building]');
         const nomeData = el && el.getAttribute('data-building');
         if (nomeData && nomeData in nomesPt) return nomeData;
 
+        // Método 2: imagem do edifício
         const img = item.querySelector('img[src*="/buildings/"]');
         if (img) {
             const match = img.src.match(/\/buildings\/([a-z_]+)\.png/i);
             if (match && match[1] in nomesPt) return match[1];
         }
+        
+        // Método 3: procurar por texto do nome do edifício na linha
+        const texto = item.textContent || '';
+        for (const [key, nome] of Object.entries(nomesPt)) {
+            if (texto.toLowerCase().includes(nome.toLowerCase()) || 
+                texto.toLowerCase().includes(key.toLowerCase())) {
+                return key;
+            }
+        }
+        
         return null;
     }
 
     function obterItensFila(container) {
         if (!container) return [];
+        
+        // Método 1: Procurar todas as linhas da tabela (tr) que têm timer ou data-building
         const linhas = Array.from(container.querySelectorAll('tr')).filter(linha => {
             if (linha.querySelector('th')) return false;
-            return !!extrairEdificioDeItemFila(linha) || extrairTempoDeItemFila(linha) !== null;
+            const temTimer = linha.querySelector('.timer, .countdown, [id*="timer"], [data-endtime], [data-end-time]');
+            const temEdificio = extrairEdificioDeItemFila(linha);
+            return !!(temTimer || temEdificio);
         });
-        if (linhas.length) return linhas;
+        if (linhas.length) {
+            console.log(`${LOG_PREFIX} Fila: ${linhas.length} itens encontrados (método tabela)`);
+            return linhas;
+        }
 
+        // Método 2: Procurar por itens de lista
         const items = Array.from(container.querySelectorAll('li, .queue-item, .buildorder, [id^="buildorder_"], .build-entry, .queue-entry, .construction-entry, .build-item')).filter(el => {
             return !!extrairEdificioDeItemFila(el) || extrairTempoDeItemFila(el) !== null;
         });
-        if (items.length) return items;
+        if (items.length) {
+            console.log(`${LOG_PREFIX} Fila: ${items.length} itens encontrados (método lista)`);
+            return items;
+        }
 
+        // Método 3: Filhos diretos do container
         const directos = Array.from(container.children || []).filter(el => {
             return !!extrairEdificioDeItemFila(el) || extrairTempoDeItemFila(el) !== null;
         });
+        if (directos.length) {
+            console.log(`${LOG_PREFIX} Fila: ${directos.length} itens encontrados (método direto)`);
+        }
         return directos;
     }
 
@@ -728,24 +757,30 @@
     // ========================================================================
     // FUNÇÃO AGENDAR REFRESH (definida antes de ser usada)
     // Agenda refresh com variação aleatória e sem memory leak (clearInterval) - v8.0: humanizedDelay
+    // v8.2.3: Correção de throttling em abas inativas usando Date.now() para tempo real
     function agendarRefresh(segundosBase) {
         if (_intervalId) { clearInterval(_intervalId); _intervalId = null; }
         // Usar humanizedDelay para variação mais realista
-        let tempoRestante = Math.floor(humanizedDelay(segundosBase, 0.3));
-        if (tempoRestante > MAX_WAIT_SECONDS) {
-            console.warn(`${LOG_PREFIX} Tempo de espera anormal detectado: ${formatarSegundos(tempoRestante)}. Limitando a ${formatarSegundos(MAX_WAIT_SECONDS)}.`);
-            tempoRestante = MAX_WAIT_SECONDS;
+        let tempoTotal = Math.floor(humanizedDelay(segundosBase, 0.3));
+        if (tempoTotal > MAX_WAIT_SECONDS) {
+            console.warn(`${LOG_PREFIX} Tempo de espera anormal detectado: ${formatarSegundos(tempoTotal)}. Limitando a ${formatarSegundos(MAX_WAIT_SECONDS)}.`);
+            tempoTotal = MAX_WAIT_SECONDS;
         }
 
+        const tempoInicio = Date.now();
+        const tempoFim = tempoInicio + (tempoTotal * 1000);
+
         _intervalId = setInterval(() => {
-            tempoRestante--;
-            if (tempoRestante < 0) tempoRestante = 0;
+            const agora = Date.now();
+            const tempoRestante = Math.max(0, Math.ceil((tempoFim - agora) / 1000));
             
             let min = Math.floor(tempoRestante / 60);
             let seg = tempoRestante % 60;
             setTimerText(`${min}m ${seg < 10 ? '0' : ''}${seg}s`);
 
-            if (tempoRestante <= 0) {
+            if (agora >= tempoFim) {
+                clearInterval(_intervalId);
+                _intervalId = null;
                 // Mantem o bot no Edificio Principal.
                 if (!window.location.href.includes("screen=main")) {
                     setStatus("A voltar ao trabalho...");
@@ -986,12 +1021,14 @@
         const detalhesFila = lerFilaConstrucao(containerFila);
         if (containerFila) {
             niveisNaFila = {};
+            // Agrupar por nome e contar quantos de cada edifício existem na fila
             detalhesFila.forEach(item => {
                 if (item.nome && item.nome in nomesPt) {
                     niveisNaFila[item.nome] = (niveisNaFila[item.nome] || 0) + 1;
                 }
             });
             itensNaFila = detalhesFila.length;
+            console.log(`${LOG_PREFIX} Níveis na fila:`, JSON.stringify(niveisNaFila));
         }
 
         const obraMaisRecente = lerConstrucaoMaisRecente(containerFila);
@@ -1263,7 +1300,8 @@
         let nomeVisual = nomesPt[edificioAConstruir] || edificioAConstruir;
         let nivelA = parseInt(edificiosAtuais[edificioAConstruir] || 0, 10);
         let nivelF = niveisNaFila[edificioAConstruir] || 0;
-        setProximo(`${nomeVisual} (Alvo: ${alvoNivel} | Atual: ${nivelA}+${nivelF})`);
+        let nivelTotal = nivelA + nivelF;
+        setProximo(`${nomeVisual} (Próximo: ${nivelTotal + 1} | Atual: ${nivelA} + Fila: ${nivelF})`);
 
         // Deteção inteligente de Conta Premium (múltiplos métodos)
         let temPremium = false;
