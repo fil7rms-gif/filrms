@@ -12,9 +12,9 @@ Inclui um pequeno painel dentro do jogo com estado atual, temporizador, próxima
 
 ## Versão atual
 
-**v8.2.2** corrige a renderização parcial do painel durante pausas: a percentagem do armazém passa a aparecer arredondada e a fila recente deixa de mostrar `[object Object]`.
+**v8.2.4** corrige a contagem crítica de níveis na fila: agora detecta corretamente múltiplos níveis do mesmo edifício (ex: Estábulo 9,10,11,12). O painel foi atualizado para mostrar informação mais clara (Próximo | Atual + Fila).
 
-A versão anterior já tinha corrigido a experiência do painel: os campos de status, timer, próxima construção, população, armazém e fila recente são atualizados individualmente sempre que possível. Isto evita recriar o painel inteiro a cada atualização e impede que o dropdown de estratégia feche enquanto está a ser usado.
+A versão anterior corrigia a renderização parcial do painel durante pausas: a percentagem do armazém passa a aparecer arredondada e a fila recente deixa de mostrar `[object Object]`.
 
 Esta versão mantém as correções recentes de cálculo de espera, leitura de produção decimal, timers de fila cheia e deteção reforçada de Conta Premium.
 

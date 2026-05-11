@@ -1,9 +1,15 @@
-# 🔧 CORREÇÕES APLICADAS - v8.2.2
+# 🔧 CORREÇÕES APLICADAS - v8.2.4
 
 ## Problema Identificado
-O script apresentava esperas anormais (ex: 24h ou saltos de minutos inexplicáveis), falha na detecção de conta premium, leitura imprecisa de timers da fila, fecho involuntário do dropdown de estratégia e dois erros visuais no painel durante pausas.
+O script apresentava erros na contagem de níveis na fila, esperas anormais (ex: 24h ou saltos de minutos inexplicáveis), falha na detecção de conta premium, leitura imprecisa de timers da fila, fecho involuntário do dropdown de estratégia e dois erros visuais no painel durante pausas.
 
-## ✅ Correção Mais Recente (v8.2.2)
+## ✅ Correção Mais Recente (v8.2.4)
+
+### 1. 🏗️ Contagem Crítica de Níveis na Fila
+- **Problema:** O script não detectava corretamente múltiplos níveis do mesmo edifício na fila (ex: Estábulo 9,10,11,12), levando a decisões incorretas sobre a próxima construção.
+- **Solução:** Implementada lógica aprimorada para analisar a fila e contar níveis adequadamente. O painel agora mostra informação mais clara: "Próximo | Atual + Fila".
+
+## ✅ Correção de Renderização Parcial (v8.2.2)
 
 ### 1. 🧾 Renderização Parcial do Painel em Pausa
 - **Problema:** `setArmazem()` mostrava a percentagem crua, por exemplo `32.51302837290098%`.
@@ -44,8 +50,8 @@ O script apresentava esperas anormais (ex: 24h ou saltos de minutos inexplicáve
 
 ### Exemplo de Fila Cheia Inteligente:
 ```
-[Auto-Builder v8.2.2] Timer encontrado na fila: 08m 45s
-[Auto-Builder v8.2.2] Status: Fila cheia (5/5). Próxima vaga em 08m 45s.
+[Auto-Builder v8.2.4] Timer encontrado na fila: 08m 45s
+[Auto-Builder v8.2.4] Status: Fila cheia (5/5). Próxima vaga em 08m 45s.
 ```
 
 ### Exemplo de Correção de Escala:
