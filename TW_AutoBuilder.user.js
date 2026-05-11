@@ -14,9 +14,9 @@
 // @match        *://*.plemiona.pl/*
 // @match        *://*.die-staemme.de/*
 // @include      *://*.tribalwars.com.pt/*
-// @installURL   https://cdn.jsdelivr.net/gh/fil7rms-gif/filrms@main/TW_AutoBuilder.user.js
-// @updateURL    https://cdn.jsdelivr.net/gh/fil7rms-gif/filrms@main/TW_AutoBuilder.user.js
-// @downloadURL  https://cdn.jsdelivr.net/gh/fil7rms-gif/filrms@main/TW_AutoBuilder.user.js
+// @installURL   https://raw.githubusercontent.com/fil7rms-gif/filrms/main/TW_AutoBuilder.user.js
+// @updateURL    https://raw.githubusercontent.com/fil7rms-gif/filrms/main/TW_AutoBuilder.user.js
+// @downloadURL  https://raw.githubusercontent.com/fil7rms-gif/filrms/main/TW_AutoBuilder.user.js
 // @grant        none
 // ==/UserScript==
 
